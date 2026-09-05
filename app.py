@@ -2,22 +2,50 @@ import streamlit as st
 import fitz  # PyMuPDF
 import io
 
-st.set_page_config(page_title="4x6 Shipping Label Cropper", page_icon="📦", layout="centered")
+# 1. Page Configuration & Layout
+st.set_page_config(
+    page_title="Flipkart 4x6 Label Cropper",
+    page_icon="📦",
+    layout="centered"
+)
 
-st.title("📦 4x6 Thermal Label Cropper")
-st.write("Apni PDF upload karein aur instant 4x6 thermal printable PDF download karein.")
+# 2. Custom CSS Styling (UI ko clean aur modern banane ke liye)
+st.markdown("""
+    <style>
+    .main-header {
+        text-align: center;
+        color: #2e7d32;
+        font-weight: bold;
+    }
+    .sub-text {
+        text-align: center;
+        color: #555555;
+        font-size: 16px;
+        margin-bottom: 25px;
+    }
+    </style>
+""", unsafe_allow_html=True)
 
-uploaded_file = st.file_uploader("Merged PDF File Choose Karein", type=["pdf"])
+# 3. Header Section
+st.markdown("<h1 class='main-header'>📦 Flipkart Thermal Label Cropper</h1>", unsafe_allow_html=True)
+st.markdown("<p class='sub-text'>Apni Bulk Shipping Labels PDF upload karein aur <b>4x6 inch</b> Thermal Sticker ready PDF download karein.</p>", unsafe_allow_html=True)
+
+st.divider()
+
+# 4. File Upload Section
+uploaded_file = st.file_uploader("📂 Merged PDF File Upload Karein", type=["pdf"])
 
 if uploaded_file is not None:
-    st.info(f"File Uploaded: **{uploaded_file.name}**")
+    st.success(f"📄 File Selected: **{uploaded_file.name}**")
     
-    if st.button("Crop & Process Labels", type="primary"):
-        with st.spinner("Labels Crop Ho Rahe Hain..."):
+    # Process Button
+    if st.button("✂️ Crop & Generate 4x6 Labels", type="primary", use_container_width=True):
+        with st.spinner("Labels Crop Ho Rahe Hain, Kripya Wait Karein..."):
             doc = fitz.open(stream=uploaded_file.read(), filetype="pdf")
-            total_pages = len(doc)  # doc close hone se pehle count store kar liya
+            total_pages = len(doc)
             new_doc = fitz.open()
 
+            # 4x6 inch standard thermal size in points
             TARGET_WIDTH = 4 * 72   # 288 pt
             TARGET_HEIGHT = 6 * 72  # 432 pt
 
@@ -26,6 +54,7 @@ if uploaded_file is not None:
                 page.set_rotation(0)
                 rect = page.rect
 
+                # Exact tested crop coordinates
                 crop_box = fitz.Rect(
                     rect.width * 0.32,
                     rect.height * 0.03,
@@ -46,11 +75,21 @@ if uploaded_file is not None:
             new_doc.close()
             doc.close()
 
-            st.success(f"✅ Total {total_pages} Labels Process Ho Gaye!")
+            st.balloons()  # Success Animation
+            st.success(f"🎉 Total **{total_pages}** Labels Successfully Process Ho Gaye!")
             
             st.download_button(
-                label="⬇️ Final 4x6 PDF Download Karein",
+                label="⬇️ Download 4x6 Thermal PDF",
                 data=output_buffer.getvalue(),
-                file_name=f"4x6_{uploaded_file.name}",
-                mime="application/pdf"
+                file_name=f"Cropped_4x6_{uploaded_file.name}",
+                mime="application/pdf",
+                use_container_width=True
             )
+
+# Sidebar Guidance
+st.sidebar.title("📌 Instructions")
+st.sidebar.info("""
+1. Direct Flipkart / Merged PDF file upload karein.
+2. **Crop & Generate** button par click karein.
+3. Downloaded PDF ko direct 4x6 Thermal Printer se print karein.
+""")
